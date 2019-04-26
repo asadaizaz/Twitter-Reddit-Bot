@@ -6,9 +6,8 @@ import time
 import pickle
 from secrets import *
 
-
-idfile = 'mydata.pk'
-subredditname = 'Kanye'
+#ids = []
+idfile = '/tmp/mydata.pk'
 def twitterapi():
     auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
     auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
@@ -19,14 +18,14 @@ def redditapi():
     reddit = praw.Reddit(client_id=REDDIT_C_KEY,
                          client_secret=REDDIT_C_SECRET,
                          password=REDDIT_SECRET,
-                         user_agent='twitter bot /u/',
+                         user_agent='testscript by /u/fakebot3',
                          username=REDDIT_KEY)
     return reddit
 
 
 def tweet_image(url, message):
     api = twitterapi()
-    filename = 'temp.jpg'
+    filename = '/tmp/temp.jpg'
     request = requests.get(url, stream=True)
     if request.status_code == 200:
         with open(filename, 'wb') as image:
@@ -42,23 +41,26 @@ def tweet_image(url, message):
         print("Unable to download image")
 
 
+url = "https://i.imgur.com/W8WbVCR.png"
+message = "test"
+
 
 def get_posts():
     reddit = redditapi()
 
     print(reddit.user.me())
 
-    subreddit = reddit.subreddit(subredditname)
+    subreddit = reddit.subreddit('Kanye')
 
     ids = load_ids()
     top_python = subreddit.hot(limit=30)
     for submission in top_python:
         if not submission.stickied and not submission.selftext and submission.score > 500:
-            print(submission.url)
-            print(submission.title)
             if submission.id not in ids:
+                print(submission.url)
+                print(submission.title)
                 ids.append(submission.id)
-                tweet_image(submission.url, submission.title + '\n' + '\n' + "redd.it/" + submission.id)
+                tweet_image(submission.url, submission.title + '\n' + "#"' \n' + "redd.it/" + submission.id)
                 break
             else:
                 print("Next submission")
@@ -83,3 +85,5 @@ def save_ids(ids) :
         pickle.dump(ids, fi)
 
 
+def lambda_handler(_even_json, _context):
+    get_posts()
